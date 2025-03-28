@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BagDrag</title>
+    <script src="index.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .canvas-box {
+        width: 800px;
+      }
+      .wrapper {
+        height: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="canvas-box">
+        <canvas id="myCanvas" width="1200" height="600"></canvas>
+      </div>
+    </div>
+    <script>
+      const myCanvas = document.getElementById("myCanvas");
+      const outer = new BagDrag(
+        myCanvas,
+        {
+          startX: 0,
+          startY: 0,
+          width: 300,
+          height: 300,
+        },
+        {
+          startX: 400,
+          startY: 0,
+          width: 600,
+          height: 600,
+        },
+        100,
+        0.5
+      );
+      // 图片地址 起始X坐标 起始Y坐标 列数 行数 id
+      outer.drawImg("./image/五级头.png", 400, 0, 2, 2, "1");
+      outer.drawImg("./image/金打火机.png", 600, 0, 1, 1, "2");
+      outer.drawImg("./image/坦克模型.png", 0, 0, 3, 3, "3");
+      outer.drawImg("./image/滑膛枪.png", 400, 300, 5, 1, "4");
+      outer.drawImg("./image/六级头.png", 400, 400, 2, 2, "5");
+    </script>
+  </body>
+</html>
