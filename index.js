@@ -68,10 +68,8 @@ function boxBelong(startX, startY, rows, cols, id, isDrop = false) {
       const [boxStartX, boxStartY] = [j * this.gap, i * this.gap];
       const [boxEndX, boxEndY] = [(j + 1) * this.gap, (i + 1) * this.gap];
       if (
-        startX >= boxStartX &&
-        startX < boxEndX &&
-        startY >= boxStartY &&
-        startY < boxEndY
+        startX < boxEndX - this.gap / 2 &&
+        startY < boxEndY - this.gap / 2
       ) {
         targetX = boxStartX;
         targetY = boxStartY;
@@ -237,7 +235,7 @@ function drawImg(src, startX, startY, cols, rows, id) {
 
     this.updateTag(startX, startY, endX, endY, id);
 
-    console.log(this.boxTag);
+    // console.log(this.boxTag);
     // 备份当前图片
     originImg = img;
 
