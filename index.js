@@ -1,27 +1,20 @@
+// 简单判断是否是移动设备
+const isMobile = (() => {
+  return window.innerWidth <= 800;
+})();
+
 function initCanvas(firstArea, nextArea, lineWidth) {
-  this.ctx.strokeRect(
+  this.drawDragArea(
     firstArea.startX,
     firstArea.startY,
     firstArea.width,
     firstArea.height
   );
-  this.drawLine(
-    firstArea.width,
-    firstArea.height,
-    firstArea.startX,
-    firstArea.startY
-  );
-  this.ctx.strokeRect(
+  this.drawDragArea(
     nextArea.startX,
     nextArea.startY,
     nextArea.width,
     nextArea.height
-  );
-  this.drawLine(
-    nextArea.width,
-    nextArea.height,
-    nextArea.startX,
-    nextArea.startY
   );
   this.ctx.lineWidth = lineWidth || 0.5;
   this.ctx.font = "10px Arial";
@@ -32,6 +25,12 @@ function initCanvas(firstArea, nextArea, lineWidth) {
     this.canvas.offsetHeight
   );
   this.mouseEventRegist();
+}
+
+// 绘制可拖动的区域
+function drawDragArea(startX, startY, width, height) {
+  this.ctx.strokeRect(startX, startY, width, height);
+  this.drawLine(width, height, startX, startY);
 }
 
 function drawLine(canvasWidth, canvasHeight, startX, startY) {
@@ -67,10 +66,8 @@ function boxBelong(startX, startY, rows, cols, id, isDrop = false) {
     for (let j = 0; j < colsAll; j++) {
       const [boxStartX, boxStartY] = [j * this.gap, i * this.gap];
       const [boxEndX, boxEndY] = [(j + 1) * this.gap, (i + 1) * this.gap];
-      if (
-        startX < boxEndX - this.gap / 2 &&
-        startY < boxEndY - this.gap / 2
-      ) {
+      // 判断拖动的起始坐标是否到达目标方块
+      if (startX < boxEndX - this.gap / 2 && startY < boxEndY - this.gap / 2) {
         targetX = boxStartX;
         targetY = boxStartY;
         break outerLoop;
@@ -90,6 +87,7 @@ function boxBelong(startX, startY, rows, cols, id, isDrop = false) {
     height: nHeight,
   } = this.nextArea;
 
+  // 判断是否在可拖动区域内
   if (
     !(
       targetX >= fStartX &&
@@ -109,7 +107,7 @@ function boxBelong(startX, startY, rows, cols, id, isDrop = false) {
 
   if (isDrop) {
     const canChange = this.canChange(targetX, targetY, rows, cols, id);
-    if (!canChange) return;
+    if (!canChange) return false;
   }
   return {
     startX: targetX,
@@ -260,10 +258,11 @@ function mouseEventRegist() {
   let isDown = false;
   let matched;
   let prevFpsData;
-  this.canvas.addEventListener("mousedown", (e) => {
+  this.canvas.addEventListener(isMobile ? "touchstart" : "mousedown", (e) => {
+    e.preventDefault();
     isDown = true;
-    const realPosX = e.pageX;
-    const realPosY = e.pageY;
+    const realPosX = e.pageX || e.touches[0].pageX;
+    const realPosY = e.pageY || e.touches[0].pageY;
     // 匹配符合范围的数据
     matched = this.recordImgPos.find((item) => {
       return (
@@ -292,21 +291,25 @@ function mouseEventRegist() {
     }
   });
 
-  // 解决鼠标右击canvas不清除的bug
+  // 解决PC端鼠标右击canvas不清除的bug
   this.canvas.addEventListener("contextmenu", (e) => {
-    event.preventDefault();
+    e.preventDefault();
     this.ctx.putImageData(prevFpsData, 0, 0);
   });
 
-  this.canvas.addEventListener("mousemove", (e) => {
+  this.canvas.addEventListener(isMobile ? "touchmove" : "mousemove", (e) => {
     if (isDown && matched) {
+      e.preventDefault();
       // this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.ctx.putImageData(prevFpsData, 0, 0);
 
+      const pageX = e.pageX || e.touches[0].pageX;
+      const pageY = e.pageY || e.touches[0].pageY;
+
       const halfWidth = matched.width / 2;
       const halfHeight = matched.height / 2;
-      const startX = e.pageX - halfWidth; // 起始横坐标
-      const startY = e.pageY - halfHeight; // 起始纵坐标
+      const startX = pageX - halfWidth; // 起始横坐标
+      const startY = pageY - halfHeight; // 起始纵坐标
 
       const res = this.boxBelong(
         startX,
@@ -327,24 +330,29 @@ function mouseEventRegist() {
       }
       this.ctx.drawImage(
         matched.originImg,
-        e.pageX - halfWidth,
-        e.pageY - halfHeight,
+        startX,
+        startY,
         matched.width,
         matched.height
       );
     }
   });
 
-  this.canvas.addEventListener("mouseup", (e) => {
+  this.canvas.addEventListener(isMobile ? "touchend" : "mouseup", (e) => {
     isDown = false;
     if (matched) {
+      e.preventDefault();
       // this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.ctx.putImageData(prevFpsData, 0, 0);
 
       const halfWidth = matched.width / 2;
       const halfHeight = matched.height / 2;
-      const startX = e.pageX - halfWidth; // 起始横坐标
-      const startY = e.pageY - halfHeight; // 起始纵坐标
+
+      const pageX = e.pageX || e.changedTouches[0].pageX;
+      const pageY = e.pageY || e.changedTouches[0].pageY;
+
+      const startX = pageX - halfWidth; // 起始横坐标
+      const startY = pageY - halfHeight; // 起始纵坐标
 
       const res = this.boxBelong(
         startX,
@@ -359,13 +367,15 @@ function mouseEventRegist() {
         // 记录被替换区域的图像
         const isTargetAreaHasImg = this.lastBeChangedImgId.length; // 替换的目标区域是否存在图片
 
-
         // 记录图片的位移距离
         const moveX = res.startX - matched.startX;
         const moveY = res.startY - matched.startY;
 
         let moveEnough = true;
-        if (Math.abs(moveX) < matched.width && Math.abs(moveY) < matched.height) {
+        if (
+          Math.abs(moveX) < matched.width &&
+          Math.abs(moveY) < matched.height
+        ) {
           moveEnough = false;
         }
         // console.log(moveEnough)
@@ -464,6 +474,7 @@ function BagDrag(el, firstArea, nextArea, gap, lineWidth) {
 
 BagDrag.prototype = {
   initCanvas,
+  drawDragArea,
   drawImg,
   drawLine,
   mouseEventRegist,

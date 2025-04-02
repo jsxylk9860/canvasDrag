@@ -14,35 +14,52 @@
   </head>
   <body>
     <div class="wrapper">
-      <div class="canvas-box">
-        <canvas id="myCanvas" width="1200" height="600"></canvas>
-      </div>
+      <div class="canvas-box"></div>
     </div>
     <script>
+      const canvasBox = document.getElementsByClassName("canvas-box")[0];
+      canvasBox.innerHTML = `<canvas id="myCanvas" width="${
+        isMobile ? 300 : 1200
+      }" height="${600}"></canvas>`;
+
       const myCanvas = document.getElementById("myCanvas");
       const outer = new BagDrag(
         myCanvas,
         {
           startX: 0,
           startY: 0,
-          width: 300,
-          height: 300,
+          width: isMobile ? 150 : 300,
+          height: isMobile ? 150 : 300,
         },
         {
-          startX: 400,
-          startY: 0,
-          width: 800,
-          height: 600,
+          startX: isMobile ? 0 : 400,
+          startY: isMobile ? 200 : 0,
+          width: isMobile ? 300 : 800,
+          height: isMobile ? 300 : 600,
         },
-        100,
+        isMobile ? 50 : 100, // 单位方框宽高
         0.5
       );
       // 图片地址 起始X坐标 起始Y坐标 列数 行数 id
-      outer.drawImg("./image/五级头.png", 400, 0, 2, 2, "1");
-      outer.drawImg("./image/金打火机.png", 600, 0, 1, 1, "2");
+      outer.drawImg(
+        "./image/五级头.png",
+        isMobile ? 0 : 400,
+        isMobile ? 200 : 0,
+        2,
+        2,
+        "1"
+      );
+      outer.drawImg(
+        "./image/金打火机.png",
+        isMobile ? 100 : 600,
+        isMobile ? 200 : 0,
+        1,
+        1,
+        "2"
+      );
       outer.drawImg("./image/坦克模型.png", 0, 0, 3, 3, "3");
-      outer.drawImg("./image/滑膛枪.png", 400, 300, 5, 1, "4");
-      outer.drawImg("./image/六级头.png", 400, 400, 2, 2, "5");
+      outer.drawImg("./image/滑膛枪.png", isMobile ? 0 : 400, 300, 5, 1, "4");
+      outer.drawImg("./image/六级头.png", isMobile ? 0 : 400, 400, 2, 2, "5");
     </script>
   </body>
 </html>
